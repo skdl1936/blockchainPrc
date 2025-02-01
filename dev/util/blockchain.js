@@ -28,16 +28,15 @@ Blockchain.prototype.getLastBlock = function (){
     return this.chain[this.chain.length - 1];
 }
 
-Blockchain.prototype.createNewTransaction = function (amount, sender,recipient){
+// 새로운 트랜잭션 생성
+Blockchain.prototype.createNewTransaction = function (coin, price,timestamp){
     const newTransaction = {
-        amount: amount,
-        sender: sender,
-        recipient: recipient,
+        coin: coin,
+        price: price,
+        timestamp: timestamp,
         transactionId: uuidv1().split('-').join('')
     }
     return newTransaction;
-    // this.pendingTransactions.push(newTransaction);
-    // return this.getLastBlock()['index'] + 1;
 }
 
 Blockchain.prototype.hashBlock = function (previousBlockHash, currentBlockData, nonce){

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain Info</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .block {
+            border: 1px solid #ddd;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+            background-color: #f4f4f4;
+        }
+        .block h2 {
+            margin: 0 0 0.5rem;
+            font-size: 1.2rem;
+            color: #4CAF50;
+        }
+        .block p {
+            margin: 0.2rem 0;
+        }
+    </style>
+    <script>
+
+    </script>
+</head>
+<body>
+<header>현재 블록체인 정보</header>
+<div class="container">
+    <h2>현재 네트워크 URL</h2>
+    <div class="block">
+        <p><strong><%= currentNodeUrl %></strong></p>
+    </div>
+    <h2>체인 목록</h2>
+    <% for(let i = 0; i < chain.length; i++){ %>
+        <div class="block">
+            <h2>Block #<%= i+1 %></h2>
+            <p><strong>Hash:</strong> <%= chain[i].hash%></p>
+            <p><strong>Previous Hash:</strong> <%= chain[i].previousBlockHash%></p>
+            <p><strong>Timestamp:</strong> <%= chain[i].timestamp%></p>
+            <p><strong>nonce: </strong> <%= chain[i].nonce %></p>
+            <p><strong>transaction : </strong></p>
+
+            <div class = "block">
+                <% for (let j = 0; j < chain[i].transactions.length; j++){ %>
+                    <p><strong>코인명: </strong> <%= chain[i].transactions[j].coin%></p>
+                    <p><strong>현재가: </strong> <%= chain[i].transactions[j].price%></p>
+                    <p><strong>시간: </strong> <%= chain[i].transactions[j].timestamp%></p>
+                <%}%>
+            </div>
+        </div>
+    <% } %>
+
+    <h2>미결 트랜잭션</h2>
+    <div class="pending-transactions">
+
+    </div>
+
+    <script>
+        async function realTimeTransactions(){
+            try{
+                const response = await fetch('/pending/transactions');
+                const transactions = await response.json();
+                // 위의 div 가져오기
+                const pendingContainer = document.querySelector('.pending-transactions')
+                pendingContainer.innerHTML = '';
+
+                transactions.forEach(transaction =>{
+                    const block = document.createElement('div');
+                    block.classList.add('block');
+                    block.innerHTML = `
+                       <p><strong>코인명: </strong>${transaction.coin}</p>
+                       <p><strong>현재가: </strong>${transaction.price}</p>
+                       <p><strong>시간: </strong>${transaction.timestamp}</p>
+                    `;
+                    pendingContainer.appendChild(block);
+                })
+            }catch(err){
+                console.log('에러남', err.message);
+            }
+        }
+
+        setInterval(realTimeTransactions, 10000);
+
+        realTimeTransactions();
+    </script>
+
+</div>
+</body>
+</html>

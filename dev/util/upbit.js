@@ -10,18 +10,37 @@ const options = {
 }
 
 // 현재가 가져오기
-const getCurrentPrice = request(options, (error, response, body) => {
-    if (error) throw new Error(error)
-    const coins = JSON.parse(body)
+// const getCurrentPrice = request(options, (error, response, body) => {
+//     if (error) throw new Error(error)
+//     const coins = JSON.parse(body)
+//
+//     const bitcoin = coins[0]
+//     const etc = coins[1]
+//     const doge = coins[2]
+//
+//     console.log('비트코인: ', bitcoin.trade_price.toLocaleString(),'KRW')
+//     console.log('이더리움: ', etc.trade_price.toLocaleString(),'KRW')
+//     console.log('도지코인: ', doge.trade_price.toLocaleString(),'KRW')
+//
+//     return {bitcoin, etc, doge}
+// })
 
-    console.log("coin info:" ,coins)
-    const bitcoin = coins[0]
-    const etc = coins[1]
-    const doge = coins[2]
+const getCurrentPrice = () => {
+    return new Promise((resolve, reject) => {
+        request(options, (error, response, body) => {
+            if (error) return reject(error);
+            try {
+                const coins = JSON.parse(body);
+                console.log(coins)
+                const bitcoin = coins[0];
+                const etc = coins[1];
+                const doge = coins[2];
+                resolve({ bitcoin, etc, doge });
+            } catch (err) {
+                reject(err);
+            }
+        });
+    });
+};
 
-    console.log('비트코인: ', bitcoin.trade_price.toLocaleString(),'KRW')
-    console.log('이더리움: ', etc.trade_price.toLocaleString(),'KRW')
-    console.log('도지코인: ', doge.trade_price.toLocaleString(),'KRW')
-
-    return {bitcoin, etc, doge}
-})
+module.exports = {getCurrentPrice};

@@ -5,7 +5,11 @@ const bodyParser = require('body-parser');
 const Blockchain = require('./util/blockchain.js');
 const {v1 :uuidv1} = require('uuid');
 const rp = require('request-promise');
+const { getCurrentPrice } = require('./util/upbit.js');
 
+
+
+app.set('views', __dirname + '/views')
 app.set('view engine','ejs');
 
 app.use(bodyParser.json());
@@ -14,10 +18,54 @@ app.use(bodyParser.urlencoded({ extended: false }));
 const bitcoin = new Blockchain();
 const nodeAddress = uuidv1().split('-').join('');
 
-const root = require('../lib/root.js');
+const root = require('./lib/root.js');
+
+setInterval(async () => {
+    try{
+        const prices = await getCurrentPrice();
+        const timestamp = new Date();
+
+        const bitcoinTransaction = {
+            coin: 'BTC',
+            price: prices.bitcoin.trade_price.toLocaleString(),
+            timestamp: timestamp
+        }
+        const ethereumTransaction = {
+            coin: 'ETH',
+            price: prices.etc.trade_price.toLocaleString(),
+            timestamp: timestamp
+        }
+        const dogecoinTransaction = {
+            coin: 'DOGE',
+            price: prices.doge.trade_price,
+            timestamp: timestamp
+        }
+
+        const transactions = [bitcoinTransaction, ethereumTransaction, dogecoinTransaction]
+
+        for (const transaction of transactions){
+            await rp({
+                uri: `http://localhost:${port}/transaction/broadcast`,
+                method: 'POST',
+                body: transaction,
+                json: true
+            });
+            console.log(`${transaction.coin} 트랜잭션 새성 및 브로드캐스트 완료 `)
+        }
+    }catch(err){
+        console.error('Error fetching prices or broadcasting transactions: ', err.message)
+    }
+},10000)
+
+
+
+app.get('/pending/transactions', (req,res)=>{
+    res.json(bitcoin.pendingTransactions)
+})
 
 // 블록체인 전체 출력
 app.get('/blockchain', function (req, res) {
+    req.instance = bitcoin
     root.blockchain(req,res)
     // res.send(bitcoin)
 });
@@ -30,7 +78,8 @@ app.post('/transaction', function (req, res) {
 });
 
 app.post('/transaction/broadcast', function (req, res) {
-    const newTransaction = bitcoin.createNewTransaction(req.body.amount, req.body.sender, req.body.recipient);
+
+    const newTransaction = bitcoin.createNewTransaction(req.body.coin, req.body.price, req.body.timestamp);
     bitcoin.addTransactionToPendingTransactions(newTransaction);
 
     const requestPromises = [];
@@ -79,23 +128,24 @@ app.get('/mine', function (req, res) {
 
     Promise.all(requestPromises)
         .then(data =>{
-            const requestOptions = {
-                uri: bitcoin.currentNodeUrl + '/transaction/broadcast',
-                method: 'POST',
-                body:{
-                    amount: 6.25,
-                    sender:"00",
-                    recipient: nodeAddress
-                },
-                json: true
-            };
-            return rp(requestOptions);
+            // const requestOptions = {
+            //     uri: bitcoin.currentNodeUrl + '/transaction/broadcast',
+            //     method: 'POST',
+            //     body:{
+            //         amount: 6.25,
+            //         sender:"00",
+            //         recipient: nodeAddress
+            //     },
+            //     json: true
+            // };
+            // return rp(requestOptions);
+            res.json({
+                note: "New Block mined successfully",
+                block: newBlock
+            })
         })
 
-    res.json({
-        note: "New Block mined successfully",
-        block: newBlock
-    })
+
 });
 
 app.post('/receive-new-block',function (req, res) {
@@ -220,3 +270,4 @@ app.get('/consensus', function (req,res){
 app.listen(port, function() {
     console.log(`listening on port ${port}...`)
 });
+
