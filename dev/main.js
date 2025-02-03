@@ -299,9 +299,9 @@ app.get('/hacking', function (req,res){
     const blockAddHackingResult = bitcoin.chainIsValid(bitcoin.chain);
     console.log('노드 내의 블록들 간의 무결성 유지 여부 검사: ', bitcoin.chainIsValid(bitcoin.chain));
 
-    console.log('해킹 시도: 첫번째 블록의 트랜잭션의 거래량을 변경')
+    console.log('해킹 시도: 첫번째 블록의 트랜잭션 변경')
     console.log(bitcoin.chain[1].transactions[0]);
-    bitcoin.chain[1].transactions[0].amount = 99999999;
+    bitcoin.chain[1].transactions[0].coin = "haking";
 
     const transactionsHackingResult = bitcoin.chainIsValid(bitcoin.chain);
     console.log('노드 내의 블록들간의 무결성 유지 여부 검사: ', transactionsHackingResult)
