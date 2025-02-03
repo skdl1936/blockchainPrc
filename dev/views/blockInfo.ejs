@@ -74,9 +74,11 @@
 
             <div class = "block">
                 <% for (let j = 0; j < chain[i].transactions.length; j++){ %>
-                    <p><strong>코인명: </strong> <%= chain[i].transactions[j].coin%></p>
-                    <p><strong>현재가: </strong> <%= chain[i].transactions[j].price%></p>
-                    <p><strong>시간: </strong> <%= chain[i].transactions[j].timestamp%></p>
+                    <div class = "block">
+                        <p><strong>코인명: </strong> <%= chain[i].transactions[j].coin%></p>
+                        <p><strong>현재가: </strong> <%= chain[i].transactions[j].price%></p>
+                        <p><strong>시간: </strong> <%= chain[i].transactions[j].timestamp%></p>
+                    </div>
                 <%}%>
             </div>
         </div>
