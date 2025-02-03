@@ -54,6 +54,14 @@
     <div class="block">
         <p><strong><%= currentNodeUrl %></strong></p>
     </div>
+
+    <h2>연결된 네트워크의 URL</h2>
+    <div class="block">
+        <% for (let i = 0; i < networkNodes.length; i++ ){%>
+            <p><strong><%= networkNodes[i] %></strong></p>
+        <%}%>
+    </div>
+
     <h2>체인 목록</h2>
     <% for(let i = 0; i < chain.length; i++){ %>
         <div class="block">
