@@ -20,47 +20,76 @@ const nodeAddress = uuidv1().split('-').join('');
 
 const root = require('./lib/root.js');
 
-setInterval(async () => {
-    try{
-        const prices = await getCurrentPrice();
-        const timestamp = new Date();
+const isLeader = process.argv[4] === 'true';
+console.log("리더 여부: ",isLeader)
 
-        const bitcoinTransaction = {
-            coin: 'BTC',
-            price: prices.bitcoin.trade_price.toLocaleString(),
-            timestamp: timestamp
+if(isLeader){
+    setInterval(async () => {
+        try{
+            const prices = await getCurrentPrice();
+            const timestamp = new Date();
+
+            const bitcoinTransaction = {
+                coin: 'BTC',
+                price: prices.bitcoin.trade_price.toLocaleString(),
+                timestamp: timestamp
+            }
+            const ethereumTransaction = {
+                coin: 'ETH',
+                price: prices.etc.trade_price.toLocaleString(),
+                timestamp: timestamp
+            }
+            const dogecoinTransaction = {
+                coin: 'DOGE',
+                price: prices.doge.trade_price,
+                timestamp: timestamp
+            }
+
+            const transactions = [bitcoinTransaction, ethereumTransaction, dogecoinTransaction]
+
+
+            const requestPromises = [];
+            for (const transaction of transactions){
+                // 현재 노드의 url의 미결트랜잭션으로 트랜잭션을 넣어줌
+                const requestOptions = {
+                    uri: bitcoin.currentNodeUrl + '/transaction',
+                    method: 'POST',
+                    body:transaction,
+                    json: true
+                };
+                requestPromises.push(rp(requestOptions));
+
+                // await rp({
+                //     uri: `http://localhost:${port}/transaction/broadcast`,
+                //     method: 'POST',
+                //     body: transaction,
+                //     json: true
+                // });
+            }
+
+            Promise.all(requestPromises)
+                .then(data =>{
+                    const mineBlockAddOption = {
+                        uri: bitcoin.currentNodeUrl + '/mine',
+                        method: 'GET',
+                        json: true
+                    }
+                    rp(mineBlockAddOption)
+                })
+        }catch(err){
+            console.error('Error fetching prices or broadcasting transactions: ', err.message)
         }
-        const ethereumTransaction = {
-            coin: 'ETH',
-            price: prices.etc.trade_price.toLocaleString(),
-            timestamp: timestamp
-        }
-        const dogecoinTransaction = {
-            coin: 'DOGE',
-            price: prices.doge.trade_price,
-            timestamp: timestamp
-        }
-
-        const transactions = [bitcoinTransaction, ethereumTransaction, dogecoinTransaction]
-
-        for (const transaction of transactions){
-            await rp({
-                uri: `http://localhost:${port}/transaction/broadcast`,
-                method: 'POST',
-                body: transaction,
-                json: true
-            });
-            console.log(`${transaction.coin} 트랜잭션 새성 및 브로드캐스트 완료 `)
-        }
-    }catch(err){
-        console.error('Error fetching prices or broadcasting transactions: ', err.message)
-    }
-},10000)
+    },20000)
+}
 
 
+app.get('/blockchain/info',(req,res)=>{
+    res.json(bitcoin)
+})
 
-app.get('/pending/transactions', (req,res)=>{
-    res.json(bitcoin.pendingTransactions)
+// ejs에서 부분 랜더링 적용하기 위한 api
+app.get('/chainList', (req,res)=>{
+    res.json(bitcoin.chain)
 })
 
 // 블록체인 전체 출력
@@ -111,8 +140,6 @@ app.get('/mine', function (req, res) {
 
     const blockHash = bitcoin.hashBlock(previousBlockHash, currentBlockData,nonce);
 
-    // bitcoin.createNewTransaction(6.25,"00",nodeAddress);
-
     const newBlock = bitcoin.createNewBlock(nonce,previousBlockHash,blockHash);
 
     const requestPromises = [];
@@ -128,26 +155,15 @@ app.get('/mine', function (req, res) {
 
     Promise.all(requestPromises)
         .then(data =>{
-            // const requestOptions = {
-            //     uri: bitcoin.currentNodeUrl + '/transaction/broadcast',
-            //     method: 'POST',
-            //     body:{
-            //         amount: 6.25,
-            //         sender:"00",
-            //         recipient: nodeAddress
-            //     },
-            //     json: true
-            // };
-            // return rp(requestOptions);
             res.json({
                 note: "New Block mined successfully",
                 block: newBlock
             })
         })
 
-
 });
 
+// 블록 확인후 체인에 추가
 app.post('/receive-new-block',function (req, res) {
     const newBlock = req.body.newBlock;
     const lastBlock = bitcoin.getLastBlock();
@@ -230,7 +246,7 @@ app.get('/consensus', function (req,res){
     const requestPromises = [];
     bitcoin.networkNodes.forEach(networkNodeUrl =>{
         const requestOptions = {
-            uri: networkNodeUrl + "/blockchain",
+            uri: networkNodeUrl + "/blockchain/info",
             method: 'GET',
             json:true
         }
@@ -301,7 +317,7 @@ app.get('/hacking', function (req,res){
 
     console.log('해킹 시도: 첫번째 블록의 트랜잭션 변경')
     console.log(bitcoin.chain[1].transactions[0]);
-    bitcoin.chain[1].transactions[0].coin = "haking";
+    bitcoin.chain[1].transactions[0].price = "0";
 
     const transactionsHackingResult = bitcoin.chainIsValid(bitcoin.chain);
     console.log('노드 내의 블록들간의 무결성 유지 여부 검사: ', transactionsHackingResult)

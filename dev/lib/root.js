@@ -1,6 +1,3 @@
-
-
-
 module.exports = {
     blockchain: (req,res) => {
         const context = {

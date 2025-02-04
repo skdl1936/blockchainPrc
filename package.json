@@ -4,11 +4,11 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "node_1": "nodemon --watch dev -e js dev/main.js 3000 http://localhost:3000",
-    "node_2": "nodemon --watch dev -e js dev/main.js 3001 http://localhost:3001",
-    "node_3": "nodemon --watch dev -e js dev/main.js 3002 http://localhost:3002",
-    "node_4": "nodemon --watch dev -e js dev/main.js 3003 http://localhost:3003",
-    "node_5": "nodemon --watch dev -e js dev/main.js 3004 http://localhost:3004"
+    "node_1": "nodemon --watch dev -e js dev/main.js 61000 http://localhost:61000 true",
+    "node_2": "nodemon --watch dev -e js dev/main.js 61001 http://localhost:61001 false",
+    "node_3": "nodemon --watch dev -e js dev/main.js 61002 http://localhost:61002 false",
+    "node_4": "nodemon --watch dev -e js dev/main.js 61003 http://localhost:61003 false",
+    "node_5": "nodemon --watch dev -e js dev/main.js 61004 http://localhost:61004 false"
   },
   "author": "",
   "license": "ISC",

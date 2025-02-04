@@ -63,6 +63,7 @@
     </div>
 
     <h2>체인 목록</h2>
+    <div class = 'chain-list'>
     <% for(let i = 0; i < chain.length; i++){ %>
         <div class="block">
             <h2>Block #<%= i+1 %></h2>
@@ -83,39 +84,53 @@
             </div>
         </div>
     <% } %>
-
-    <h2>미결 트랜잭션</h2>
-    <div class="pending-transactions">
-
     </div>
 
-    <script>
-        async function realTimeTransactions(){
-            try{
-                const response = await fetch('/pending/transactions');
-                const transactions = await response.json();
-                // 위의 div 가져오기
-                const pendingContainer = document.querySelector('.pending-transactions')
-                pendingContainer.innerHTML = '';
 
-                transactions.forEach(transaction =>{
-                    const block = document.createElement('div');
-                    block.classList.add('block');
-                    block.innerHTML = `
-                       <p><strong>코인명: </strong>${transaction.coin}</p>
-                       <p><strong>현재가: </strong>${transaction.price}</p>
-                       <p><strong>시간: </strong>${transaction.timestamp}</p>
-                    `;
-                    pendingContainer.appendChild(block);
+
+    <script>
+        async function realTimeNewBlock(){
+            try{
+                const response = await fetch('/chainList');
+                const chain = await response.json();
+                // 위의 div 가져오기
+                const container = document.querySelector('.chain-list')
+                container.innerHTML = '';
+
+                chain.forEach(block =>{
+                    const div = document.createElement('div');
+                    div.classList.add('block');
+                    let transaction = '';
+                    block.transactions.forEach(coin =>{
+                        transaction += `
+                            <div class = 'block'>
+                                <p><strong>코인명: </strong> ${coin.coin} </p>
+                                <p><strong>현재가: </strong> ${coin.price} </p>
+                                <p><strong>시간: </strong> ${coin.timestamp} </p>
+                            </div>
+                        `
+                    })
+                    div.innerHTML = `
+                    <h2>Block #${block.index}</h2>
+                    <p><strong>Hash:</strong>${block.hash} </p>
+                    <p><strong>Previous Hash:</strong> ${block.previousBlockHash}</p>
+                    <p><strong>Timestamp:</strong>${block.timestamp}</p>
+                    <p><strong>nonce: </strong>${block.nonce}</p>
+                    <p><strong>transactions : </strong></p>
+                    ` + transaction;
+
+                    container.appendChild(div);
                 })
             }catch(err){
                 console.log('에러남', err.message);
             }
         }
 
-        setInterval(realTimeTransactions, 10000);
+        // 10초마다 값 불러옴
+        setInterval(realTimeNewBlock, 10000);
 
-        realTimeTransactions();
+        // 초기에 한번
+        realTimeNewBlock();
     </script>
 
 </div>
