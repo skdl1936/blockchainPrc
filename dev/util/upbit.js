@@ -31,7 +31,6 @@ const getCurrentPrice = () => {
             if (error) return reject(error);
             try {
                 const coins = JSON.parse(body);
-                console.log(coins)
                 const bitcoin = coins[0];
                 const etc = coins[1];
                 const doge = coins[2];

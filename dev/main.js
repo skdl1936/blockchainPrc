@@ -79,7 +79,7 @@ if(isLeader){
         }catch(err){
             console.error('Error fetching prices or broadcasting transactions: ', err.message)
         }
-    },20000)
+    },10000)
 }
 
 
@@ -303,13 +303,14 @@ app.get('/consensus', function (req,res){
 // 블록 데이터 조작과 잘못된 블록 추가
 app.get('/hacking', function (req,res){
     console.log('해킹 시도: 잘못된 블록을 추가')
+    const lastBlock = bitcoin.getLastBlock();
     bitcoin.chain.push({
-        index: 3,
+        index: lastBlock.index + 1,
         timestamp: Date.now(),
         transactions: [],
         nonce: 11111,
         hash: 'hacking123',
-        previousBlcokHash: 'hackingff'
+        previousBlockHash: 'hackingff'
     })
 
     const blockAddHackingResult = bitcoin.chainIsValid(bitcoin.chain);
@@ -318,6 +319,7 @@ app.get('/hacking', function (req,res){
     console.log('해킹 시도: 첫번째 블록의 트랜잭션 변경')
     console.log(bitcoin.chain[1].transactions[0]);
     bitcoin.chain[1].transactions[0].price = "0";
+    bitcoin.chain[1].transactions[0].coin = "hacking";
 
     const transactionsHackingResult = bitcoin.chainIsValid(bitcoin.chain);
     console.log('노드 내의 블록들간의 무결성 유지 여부 검사: ', transactionsHackingResult)
