@@ -20,6 +20,7 @@ const nodeAddress = uuidv1().split('-').join('');
 
 const root = require('./lib/root.js');
 
+
 const isLeader = process.argv[4] === 'true';
 console.log("리더 여부: ",isLeader)
 
@@ -58,13 +59,6 @@ if(isLeader){
                     json: true
                 };
                 requestPromises.push(rp(requestOptions));
-
-                // await rp({
-                //     uri: `http://localhost:${port}/transaction/broadcast`,
-                //     method: 'POST',
-                //     body: transaction,
-                //     json: true
-                // });
             }
 
             Promise.all(requestPromises)
@@ -82,6 +76,18 @@ if(isLeader){
     },10000)
 }
 
+// 현재 노드가 다른 노드와 같은지 1분마다 점검
+setInterval(async () => {
+    const requestOptions = {
+        uri: bitcoin.currentNodeUrl + '/consensus',
+        method: 'GET',
+        json: true
+    };
+
+    const result = await rp(requestOptions)
+    console.log(result.note)
+
+},60000)
 
 app.get('/blockchain/info',(req,res)=>{
     res.json(bitcoin)
